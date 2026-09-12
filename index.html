@@ -10,22 +10,30 @@
   input { width: 100%; box-sizing: border-box; font-size: 22px; padding: 10px; margin-top: 4px; border: 1px solid #aaa; border-radius: 8px; }
   #area { margin-top: 16px; color: #555; font-size: 16px; }
   #result { margin-top: 8px; font-size: 40px; font-weight: bold; }
+  #formula { margin-top: 16px; color: #777; font-size: 14px; line-height: 1.5; white-space: pre-line; }
 </style>
 </head>
 <body>
-  <label>Довжина кімнати, м <input id="l" type="number" inputmode="decimal" step="any" placeholder="5"></label>
-  <label>Ширина кімнати, м <input id="w" type="number" inputmode="decimal" step="any" placeholder="4"></label>
-  <label>Висота стін, м <input id="h" type="number" inputmode="decimal" step="any" placeholder="2.7"></label>
+  <label>Довжина кімнати, см <input id="l" type="number" inputmode="numeric" step="any" placeholder="500"></label>
+  <label>Ширина кімнати, см <input id="w" type="number" inputmode="numeric" step="any" placeholder="400"></label>
+  <label>Висота стін, см <input id="h" type="number" inputmode="numeric" step="any" placeholder="270"></label>
   <label>Витрата, м²/л (з банки) <input id="c" type="number" inputmode="decimal" step="any" placeholder="10"></label>
   <div id="area"></div>
   <div id="result"></div>
+  <div id="formula"></div>
 <script>
   const $ = id => document.getElementById(id);
   function calc() {
-    const l = +$('l').value, w = +$('w').value, h = +$('h').value, c = +$('c').value;
+    // inputs in cm, converted to metres
+    const l = +$('l').value / 100, w = +$('w').value / 100, h = +$('h').value / 100, c = +$('c').value;
     const area = 2 * (l + w) * h; // walls only, no ceiling
+    const litres = area / c;
     $('area').textContent = area > 0 ? `Площа стін: ${area.toFixed(2)} м²` : '';
-    $('result').textContent = area > 0 && c > 0 ? `${(area / c).toFixed(2)} л` : '';
+    $('result').textContent = area > 0 && c > 0 ? `${litres.toFixed(2)} л` : '';
+    $('formula').textContent = area > 0
+      ? `Площа = 2 × (довжина + ширина) × висота = 2 × (${l} + ${w}) × ${h} = ${area.toFixed(2)} м²`
+        + (c > 0 ? `\nЛітри = площа ÷ витрата = ${area.toFixed(2)} ÷ ${c} = ${litres.toFixed(2)} л` : '')
+      : '';
   }
   document.querySelectorAll('input').forEach(i => i.addEventListener('input', calc));
 </script>
