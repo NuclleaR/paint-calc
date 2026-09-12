@@ -8,14 +8,29 @@
   body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; max-width: 480px; }
   label { display: block; margin-top: 14px; font-size: 15px; }
   input { width: 100%; box-sizing: border-box; font-size: 22px; padding: 10px; margin-top: 4px; border: 1px solid #aaa; border-radius: 8px; }
+  .mode { display: flex; gap: 8px; }
+  .mode label { flex: 1; margin: 0; text-align: center; padding: 10px; border: 1px solid #aaa; border-radius: 8px; }
+  .mode input { display: none; }
+  .mode input:checked + span { font-weight: bold; }
+  .mode label:has(input:checked) { background: #ddd; }
+  .hidden { display: none; }
   #area { margin-top: 16px; color: #555; font-size: 16px; }
   #result { margin-top: 8px; font-size: 40px; font-weight: bold; }
   #formula { margin-top: 16px; color: #777; font-size: 14px; line-height: 1.5; white-space: pre-line; }
 </style>
 </head>
 <body>
-  <label>Довжина кімнати, см <input id="l" type="number" inputmode="numeric" step="any" placeholder="500"></label>
-  <label>Ширина кімнати, см <input id="w" type="number" inputmode="numeric" step="any" placeholder="400"></label>
+  <div class="mode">
+    <label><input type="radio" name="mode" value="room" checked><span>Кімната</span></label>
+    <label><input type="radio" name="mode" value="walls"><span>Окремі стіни</span></label>
+  </div>
+  <div id="room">
+    <label>Довжина кімнати, см <input id="l" type="number" inputmode="numeric" step="any" placeholder="500"></label>
+    <label>Ширина кімнати, см <input id="w" type="number" inputmode="numeric" step="any" placeholder="400"></label>
+  </div>
+  <div id="walls" class="hidden">
+    <label>Довжини стін, см (через кому) <input id="list" type="text" inputmode="decimal" placeholder="500, 400, 250"></label>
+  </div>
   <label>Висота стін, см <input id="h" type="number" inputmode="numeric" step="any" placeholder="270"></label>
   <label>Витрата, м²/л (з банки) <input id="c" type="number" inputmode="decimal" step="any" placeholder="10"></label>
   <div id="area"></div>
@@ -23,15 +38,29 @@
   <div id="formula"></div>
 <script>
   const $ = id => document.getElementById(id);
+  const mode = () => document.querySelector('input[name=mode]:checked').value;
   function calc() {
+    const room = mode() === 'room';
+    $('room').classList.toggle('hidden', !room);
+    $('walls').classList.toggle('hidden', room);
     // inputs in cm, converted to metres
-    const l = +$('l').value / 100, w = +$('w').value / 100, h = +$('h').value / 100, c = +$('c').value;
-    const area = 2 * (l + w) * h; // walls only, no ceiling
+    const h = +$('h').value / 100, c = +$('c').value;
+    let area, areaText;
+    if (room) {
+      const l = +$('l').value / 100, w = +$('w').value / 100;
+      area = 2 * (l + w) * h; // walls only, no ceiling
+      areaText = `Площа = 2 × (довжина + ширина) × висота = 2 × (${l} + ${w}) × ${h}`;
+    } else {
+      const lens = $('list').value.split(/[,;\s]+/).map(Number).filter(n => n > 0).map(n => n / 100);
+      const sum = lens.reduce((a, b) => a + b, 0);
+      area = sum * h;
+      areaText = `Площа = (${lens.join(' + ')}) × висота = ${sum.toFixed(2)} × ${h}`;
+    }
     const litres = area / c;
     $('area').textContent = area > 0 ? `Площа стін: ${area.toFixed(2)} м²` : '';
     $('result').textContent = area > 0 && c > 0 ? `${litres.toFixed(2)} л` : '';
     $('formula').textContent = area > 0
-      ? `Площа = 2 × (довжина + ширина) × висота = 2 × (${l} + ${w}) × ${h} = ${area.toFixed(2)} м²`
+      ? `${areaText} = ${area.toFixed(2)} м²`
         + (c > 0 ? `\nЛітри = площа ÷ витрата = ${area.toFixed(2)} ÷ ${c} = ${litres.toFixed(2)} л` : '')
       : '';
   }
