@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Фарба</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; max-width: 480px; }
+  label { display: block; margin-top: 14px; font-size: 15px; }
+  input { width: 100%; box-sizing: border-box; font-size: 22px; padding: 10px; margin-top: 4px; border: 1px solid #aaa; border-radius: 8px; }
+  #area { margin-top: 16px; color: #555; font-size: 16px; }
+  #result { margin-top: 8px; font-size: 40px; font-weight: bold; }
+</style>
+</head>
+<body>
+  <label>Довжина кімнати, м <input id="l" type="number" inputmode="decimal" step="any" placeholder="5"></label>
+  <label>Ширина кімнати, м <input id="w" type="number" inputmode="decimal" step="any" placeholder="4"></label>
+  <label>Висота стін, м <input id="h" type="number" inputmode="decimal" step="any" placeholder="2.7"></label>
+  <label>Витрата, м²/л (з банки) <input id="c" type="number" inputmode="decimal" step="any" placeholder="10"></label>
+  <div id="area"></div>
+  <div id="result"></div>
+<script>
+  const $ = id => document.getElementById(id);
+  function calc() {
+    const l = +$('l').value, w = +$('w').value, h = +$('h').value, c = +$('c').value;
+    const area = 2 * (l + w) * h; // walls only, no ceiling
+    $('area').textContent = area > 0 ? `Площа стін: ${area.toFixed(2)} м²` : '';
+    $('result').textContent = area > 0 && c > 0 ? `${(area / c).toFixed(2)} л` : '';
+  }
+  document.querySelectorAll('input').forEach(i => i.addEventListener('input', calc));
+</script>
+</body>
+</html>
